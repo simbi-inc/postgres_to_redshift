@@ -59,6 +59,14 @@ class PostgresToRedshift
     ENV.fetch('POSTGRES_TO_REDSHIFT_TARGET_SCHEMA')
   end
 
+  def skip_tables
+    unless instance_variable_defined?(:"@skip_tables")
+      @skip_tables = ENV.fetch('POSTGRES_TO_REDSHIFT_SKIP_TABLES', '').split(/, ?/)
+    end
+
+    @skip_tables
+  end
+
   def source_connection
     self.class.source_connection
   end
@@ -71,6 +79,7 @@ class PostgresToRedshift
     source_connection.exec("SELECT * FROM information_schema.tables WHERE table_schema = 'public' AND table_type in ('BASE TABLE', 'VIEW')").map do |table_attributes|
       table = Table.new(attributes: table_attributes)
       next if table.name =~ /^pg_/
+      next if skip_tables.include?(table.name)
       table.columns = column_definitions(table)
       table
     end.compact

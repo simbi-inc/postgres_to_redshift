@@ -29,6 +29,10 @@ class PostgresToRedshift
       name.gsub(/_view$/, '')
     end
 
+    def target_temporary_table_name
+      "#{target_table_name}_updating"
+    end
+
     def columns=(column_definitions = [])
       @columns = column_definitions.map do |column_definition|
         Column.new(attributes: column_definition)
